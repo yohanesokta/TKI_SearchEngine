@@ -9,41 +9,45 @@ class LandingController extends Controller
 {
     public function search(Request $request)
     {
-        // $category = Input::get('category', 'default category');
-        $query = $request->input('q');
-        $rank = $request->input('rank');
+        $query = $request->input('query', ''); 
+        $limit = $request->input('limit', 10); 
 
-        $process = new Process("python3 query.py indexdb {$rank} \"{$query}\"");
-        $process->run();
-
-        // executes after the command finishes
-        if (!$process->isSuccessful()) {
-            throw new ProcessFailedException($process);
+        if (empty($query)) {
+            return response()->json([
+                'error' => 'Query parameter is required'
+            ], 400);
         }
-
-        $list_data = array_filter(explode("\n",$process->getOutput()));
         
-        $data = array();
+        $pythonScript = base_path('scrapper\\query.py'); 
+        $pickleFile = base_path('scrapper\\linux_dataset.bin'); 
 
-        foreach ($list_data as $book) {
-            $dataj =  json_decode($book, true);
-            array_push($data, '
-            <div class="col-lg-5">
-                <div class="card mb-2">
-                    <div style="display: flex; flex: 1 1 auto;">
-                        <div class="img-square-wrapper">
-                            <img src="http://books.toscrape.com/'.$dataj['image'].'">
-                        </div>
-                        <div class="card-body">
-                            <h6 class="card-title"><a target="_blank" href="http://books.toscrape.com/catalogue/'.$dataj['url'].'">'.$dataj['title'].'</a></h6>
-                            <p class="card-text text-success">Price : '.$dataj['price'].'</p>
-                        </div>
-                    </div>
-                
-                </div>
-            </div>
-            ');
+        
+        $escapedQuery = escapeshellarg($query);
+        $escapedLimit = intval($limit);
+
+        
+        $cmd = "python3 {$pythonScript} {$pickleFile} {$escapedLimit} {$escapedQuery}";
+        exec($cmd, $output, $return_var);
+
+        if ($return_var !== 0) {
+            return response()->json([
+                'dir' => $pythonScript,
+                'error' => 'Python script failed',
+                'output' => $output
+            ], 500);
         }
-        echo json_encode($data);
+
+        $results = [];
+        foreach ($output as $line) {
+            $decoded = json_decode($line, true);
+            if ($decoded) {
+                $results[] = $decoded;
+            }
+        }
+
+        return response()->json([
+            'query' => $query,
+            'results' => $results
+        ]);
     }
 }
