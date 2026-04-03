@@ -1,59 +1,101 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# TKI Search Engine (BM25 Implementation)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Proyek ini adalah implementasi mesin pencari sederhana menggunakan algoritma **BM25 (Best Matching 25)** di bahasa pemrograman Go. Mesin pencari ini memanfaatkan library `gokapi` untuk melakukan pengindeksan dokumen dan perankingan berdasarkan relevansi kueri.
 
-## About Laravel
+##  Fitur
+- **BM25 Ranking:** Algoritma perankingan dokumen yang lebih akurat dibandingkan TF-IDF standar.
+- **Persistent Indexing:** Menyimpan indeks pencarian ke dalam direktori lokal (`index/`).
+- **Simple API:** Mudah digunakan untuk menambahkan dokumen dan melakukan kueri.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+##  Instalasi
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Pastikan Anda telah menginstal [Go (Golang)](https://go.dev/doc/install) versi 1.20 ke atas.
 
-## Learning Laravel
+1. **Clone repository** (atau masuk ke direktori proyek):
+   ```bash
+   cd TKI_SearchEngine
+   ```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+2. **Unduh dependensi:**
+   Gunakan perintah `go mod tidy` untuk mengunduh library `gokapi` dan modul pendukung lainnya:
+   ```bash
+   go mod tidy
+   ```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+## 💻 Cara Penggunaan
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Untuk menjalankan contoh pencarian yang ada di `main.go`, jalankan perintah berikut:
 
-### Premium Partners
+```bash
+go run main.go
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Contoh Kode (`main.go`)
+```go
+package main
 
-## Contributing
+import (
+	"fmt"
+	"github.com/raphaelsty/gokapi"
+)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+func main() {
+	// 1. Inisialisasi data dokumen
+	data := make(map[string]string)
+	data["doc_0"] = "Paris is the capital of France"
+	data["doc_1"] = "Montreal is the capital of Canada"
+	
+	// 2. Inisialisasi BM25 dengan folder penyimpanan "index"
+	retriver := gokapi.BM25("index")
+	
+	// 3. Menambahkan dokumen ke indeks
+	retriver.Add(data)
 
-## Code of Conduct
+	// 4. Melakukan pencarian (Top 5 hasil)
+	answers := retriver.Query("Paris France", 5)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+	for _, item := range answers {
+		fmt.Println(item)
+	}
 
-## Security Vulnerabilities
+	// 5. Reset indeks (opsional)
+	retriver.Reset()
+}
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+##  Penjelasan Algoritma BM25
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+**BM25 (Best Matching 25)** adalah fungsi peringkat (ranking function) yang digunakan oleh mesin pencari untuk memperkirakan relevansi dokumen terhadap kueri pencarian yang diberikan. BM25 dianggap sebagai standar industri untuk pencarian berbasis teks (Information Retrieval).
+
+### Komponen Utama BM25:
+
+1.  **Term Frequency (TF) dengan Saturation:**
+    Berbeda dengan TF biasa yang terus meningkat linear, pada BM25, pengaruh kemunculan kata yang sama berulang kali dalam satu dokumen akan "jenuh" (saturated). Artinya, jika kata "Paris" muncul 100 kali, skornya tidak akan 100x lipat lebih tinggi dari dokumen yang mengandung kata "Paris" 10 kali. Ini mencegah spam kata kunci.
+
+2.  **Inverse Document Frequency (IDF):**
+    Memberikan bobot lebih tinggi pada kata-kata yang "langka" di seluruh koleksi dokumen. Kata umum seperti "is", "the", "of" akan memiliki skor IDF yang sangat rendah, sedangkan kata spesifik seperti "Montreal" atau "Paris" akan memiliki skor tinggi.
+
+3.  **Document Length Normalization:**
+    BM25 memberikan penalti pada dokumen yang terlalu panjang. Jika sebuah kata ditemukan di dokumen pendek, itu dianggap lebih relevan daripada kata yang sama ditemukan di dokumen yang sangat panjang (di mana kata tersebut mungkin hanya muncul secara kebetulan).
+
+### Rumus Sederhana:
+Skor untuk sebuah dokumen $D$ terhadap kueri $Q$ dihitung sebagai:
+$$Score(D, Q) = \sum_{q \in Q} IDF(q) \cdot \frac{f(q, D) \cdot (k_1 + 1)}{f(q, D) + k_1 \cdot (1 - b + b \cdot \frac{|D|}{avgdl})}$$
+
+*   $f(q, D)$: Frekuensi kata $q$ dalam dokumen $D$.
+*   $|D|$: Panjang dokumen.
+*   $avgdl$: Rata-rata panjang semua dokumen dalam koleksi.
+*   $k_1$ & $b$: Parameter konstanta (biasanya $k_1=1.2$ dan $b=0.75$).
+
+---
+
+## 📂 Struktur Proyek
+- `main.go`: Logika utama aplikasi.
+- `index/`: Folder otomatis yang dibuat untuk menyimpan database indeks.
+- `go.mod`: Definisi modul dan dependensi.
