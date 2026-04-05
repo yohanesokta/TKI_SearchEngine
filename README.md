@@ -26,7 +26,7 @@ Pastikan Anda telah menginstal [Go (Golang)](https://go.dev/doc/install) versi 1
 
 ---
 
-## 💻 Cara Penggunaan
+## Cara Penggunaan
 
 Untuk menjalankan contoh pencarian yang ada di `main.go`, jalankan perintah berikut:
 
@@ -95,7 +95,7 @@ $$Score(D, Q) = \sum_{q \in Q} IDF(q) \cdot \frac{f(q, D) \cdot (k_1 + 1)}{f(q, 
 
 ---
 
-## 📂 Struktur Proyek
+## Struktur Proyek
 - `main.go`: Logika utama aplikasi.
 - `index/`: Folder otomatis yang dibuat untuk menyimpan database indeks.
 - `go.mod`: Definisi modul dan dependensi.
