@@ -1,5 +1,7 @@
 #include <iostream>
 #include <string>
+#include <fstream>
+#include <sstream>
 #include "hybrid_search/indexer.hpp"
 #include "hybrid_search/hybrid_searcher.hpp"
 #include "external/httplib.h"
@@ -8,12 +10,21 @@
 using json = nlohmann::json;
 using namespace httplib;
 
+// Helper to read file content
+std::string read_file(const std::string& path) {
+    std::ifstream file(path);
+    if (!file.is_open()) return "";
+    std::stringstream ss;
+    ss << file.rdbuf();
+    return ss.str();
+}
+
 int main() {
     hs::Indexer indexer;
     std::string data_path = "200k_abstracts/train.txt";
     
     std::cout << "Loading dataset..." << std::endl;
-    if (!indexer.load_from_file(data_path, 20000)) { // Limit to 20k for speed in this demo
+    if (!indexer.load_from_file(data_path, 20000)) { 
         return 1;
     }
 
@@ -23,6 +34,23 @@ int main() {
 
     Server svr;
 
+    // Serve static files
+    svr.Get("/", [](const Request&, Response& res) {
+        std::string html = read_file("templates/index.html");
+        res.set_content(html, "text/html");
+    });
+
+    svr.Get("/css/style.css", [](const Request&, Response& res) {
+        std::string css = read_file("templates/css/style.css");
+        res.set_content(css, "text/css");
+    });
+
+    svr.Get("/js/main.js", [](const Request&, Response& res) {
+        std::string js = read_file("templates/js/main.js");
+        res.set_content(js, "application/javascript");
+    });
+
+    // API Endpoint
     svr.Get("/search", [&](const Request& req, Response& res) {
         if (!req.has_param("q")) {
             res.status = 400;

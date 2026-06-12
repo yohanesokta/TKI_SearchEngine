@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hybrid Search Engine</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>Hybrid Search <span>PubMed 200K</span></h1>
+      <p>Combining BM25 Keyword Search & Vector Similarity</p>
+    </header>
+
+    <main>
+      <section class="search-section">
+        <form id="search-form" class="search-box">
+          <input type="text" id="search-input" placeholder="Enter keywords or abstract text..." required>
+          <button type="submit" id="search-button">
+            Search
+          </button>
+        </form>
+        <div class="search-options">
+          <label for="k-input">Top K:</label>
+          <input type="number" id="k-input" value="10" min="1" max="100">
+        </div>
+      </section>
+
+      <section id="results-info" class="results-info hidden">
+        Found <span id="result-count">0</span> results for "<span id="query-display"></span>"
+      </section>
+
+      <section id="results-container" class="results-container">
+        <!-- Results will be injected here -->
+        <div class="empty-state">
+          <p>Enter a query to start searching the medical abstracts dataset.</p>
+        </div>
+      </section>
+    </main>
+
+    <div id="loader" class="loader-overlay hidden">
+      <div class="loader"></div>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2026 Hybrid Search Engine - Professional Edition</p>
+  </footer>
+
+  <script src="/js/main.js"></script>
+</body>
+
+</html>
